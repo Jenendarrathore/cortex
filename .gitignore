@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.python-version
+
+# Virtual envs
+.cortex_venv/
+.jarvis_venv/
+.venv/
+venv/
+
+# Secrets
+.env
+*.original.md
+Commands needed/
+credentials.txt
+
+# Node
+rag-frontend/node_modules/
+docs/node_modules/
+
+# Build artifacts
+rag-frontend/dist/
+docs/build/
+docs/.docusaurus/
+
+# IDE
+.DS_Store
+.vscode/
+.idea/

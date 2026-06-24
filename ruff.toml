@@ -1,0 +1,15 @@
+# Cortex lint config. Run: ruff check rag-backend mcp tests
+line-length = 120
+target-version = "py312"
+
+[lint]
+# Pragmatic default set: pyflakes (F), pycodestyle errors (E), warnings (W),
+# isort (I), bugbear (B), pyupgrade (UP).
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = [
+    "E501",  # line length handled by formatter, not enforced hard
+    "B008",  # FastAPI uses `Depends()` as a default arg by design
+]
+
+[lint.per-file-ignores]
+"**/__init__.py" = ["F401"]  # re-exports

@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Surfaces */
+    --background: 240 20% 99%;
+    --foreground: 240 10% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 12%;
+
+    /* Brand — violet (matches favicon #7e14ff) */
+    --brand: 263 100% 54%;
+    --brand-foreground: 0 0% 100%;
+    --primary: 263 90% 56%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 16% 96%;
+    --secondary-foreground: 240 10% 20%;
+    --muted: 240 16% 96%;
+    --muted-foreground: 240 6% 46%;
+    --accent: 263 90% 96%;
+    --accent-foreground: 263 60% 38%;
+
+    --destructive: 0 80% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 62% 40%;
+    --warning: 38 92% 50%;
+    --info: 217 91% 56%;
+
+    --border: 240 12% 90%;
+    --input: 240 12% 90%;
+    --ring: 263 90% 56%;
+    --radius: 0.65rem;
+
+    /* App shell */
+    --sidebar: 240 24% 99%;
+    --sidebar-foreground: 240 8% 30%;
+    --sidebar-border: 240 12% 91%;
+  }
+
+  .dark {
+    --background: 240 16% 7%;
+    --foreground: 240 12% 92%;
+    --card: 240 14% 10%;
+    --card-foreground: 240 12% 92%;
+    --popover: 240 14% 10%;
+    --popover-foreground: 240 12% 92%;
+
+    --brand: 263 95% 68%;
+    --brand-foreground: 240 16% 7%;
+    --primary: 263 90% 66%;
+    --primary-foreground: 240 16% 8%;
+
+    --secondary: 240 10% 16%;
+    --secondary-foreground: 240 12% 88%;
+    --muted: 240 10% 15%;
+    --muted-foreground: 240 8% 58%;
+    --accent: 263 40% 20%;
+    --accent-foreground: 263 90% 86%;
+
+    --destructive: 0 70% 56%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 55% 48%;
+    --warning: 38 92% 56%;
+    --info: 217 91% 64%;
+
+    --border: 240 10% 18%;
+    --input: 240 10% 20%;
+    --ring: 263 90% 66%;
+
+    --sidebar: 240 16% 9%;
+    --sidebar-foreground: 240 10% 66%;
+    --sidebar-border: 240 10% 16%;
+  }
+
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+  }
+}
+
+@layer utilities {
+  .text-brand {
+    color: hsl(var(--brand));
+  }
+  .brand-gradient {
+    background-image: linear-gradient(
+      135deg,
+      hsl(263 90% 56%) 0%,
+      hsl(290 85% 58%) 100%
+    );
+  }
+  .brand-gradient-text {
+    background-image: linear-gradient(
+      120deg,
+      hsl(263 90% 56%) 0%,
+      hsl(290 80% 56%) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  /* Subtle radial glow used behind the shell */
+  .shell-glow {
+    background:
+      radial-gradient(60rem 40rem at 100% -10%, hsl(263 90% 56% / 0.06), transparent 60%),
+      radial-gradient(50rem 30rem at -10% 10%, hsl(290 85% 58% / 0.05), transparent 55%);
+  }
+  .animate-in-up {
+    animation: in-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 9999px;
+  }
+}
+
+@keyframes in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

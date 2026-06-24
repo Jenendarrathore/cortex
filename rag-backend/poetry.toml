@@ -1,0 +1,4 @@
+[virtualenvs]
+path = "/Users/jenendarsingh/Documents/cortex/.cortex_venv"
+in-project = true
+create = false

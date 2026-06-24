@@ -1,0 +1,148 @@
+# Cortex — self-hosted RAG stack. One command:
+#   cp .env.example .env   # set PGPASSWORD
+#   docker compose up
+#
+# Services: postgres, redis, ollama (+ one-shot model pull), backend, worker,
+# mcp, frontend, docs. Your documents never leave this box.
+
+name: cortex
+
+x-py-env: &py-env
+  PGHOST: postgres
+  PGPORT: "5432"
+  PGDATABASE: ${PGDATABASE:-cortex_rag}
+  PGUSER: ${PGUSER:-raguser}
+  PGPASSWORD: ${PGPASSWORD:-change_me}
+  REDIS_URL: redis://redis:6379
+  OLLAMA_URL: http://ollama:11434
+  EMBED_MODEL: ${EMBED_MODEL:-nomic-embed-text}
+  API_KEY: ${API_KEY:-}
+  CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+  LICENSE_ENABLED: "false"
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ${PGDATABASE:-cortex_rag}
+      POSTGRES_USER: ${PGUSER:-raguser}
+      POSTGRES_PASSWORD: ${PGPASSWORD:-change_me}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-raguser} -d ${PGDATABASE:-cortex_rag}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama
+    volumes:
+      - ollama:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    # GPU: uncomment and run `docker compose up` on a CUDA host.
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices: [{capabilities: [gpu]}]
+
+  # One-shot: pulls the embedding model into the ollama volume, then exits.
+  ollama-pull:
+    image: ollama/ollama
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["sh", "-c", "ollama pull ${EMBED_MODEL:-nomic-embed-text}"]
+    restart: "no"
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cortex-py
+    environment: *py-env
+    ports:
+      - "8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ollama-pull:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  worker:
+    image: cortex-py
+    working_dir: /app/rag-backend
+    command: ["arq", "workers.arq_worker.WorkerSettings"]
+    environment: *py-env
+    depends_on:
+      backend:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mcp:
+    image: cortex-py
+    working_dir: /app
+    command: ["python", "mcp/server.py"]
+    environment:
+      <<: *py-env
+      MCP_TRANSPORT: streamable-http
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: "8001"
+      RAG_SERVER_URL: http://backend:8002
+      RAG_API_KEY: ${API_KEY:-}
+    ports:
+      - "8001:8001"
+    depends_on:
+      backend:
+        condition: service_started
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./rag-frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8002}
+    image: cortex-web
+    ports:
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_started
+    restart: unless-stopped
+
+  docs:
+    build:
+      context: ./docs
+    image: cortex-docs
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
+  ollama:
