@@ -27,7 +27,7 @@ def _generate_file_path(title: str | None) -> str:
 logger = get_logger(__name__)
 
 
-class IngestController:
+class IngestService:
     def __init__(self, db: AsyncSession):
         self.db = db
 

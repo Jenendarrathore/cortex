@@ -251,7 +251,7 @@ Response:
 
 ```bash
 curl -X POST http://localhost:8002/documents/folder \
-  -d "folder_path=/absolute/path/to/rag-docs"
+  -d "folder_path=/absolute/path/to/sample-docs"
 ```
 
 Response:

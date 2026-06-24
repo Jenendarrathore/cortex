@@ -4,7 +4,7 @@ from typing import Awaitable, Callable
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from controllers.ingest import IngestController
+from services.ingest import IngestService
 from core.enums import FileStatus, IngestStatus
 from core.logging import get_logger
 from models.document import Document
@@ -22,7 +22,7 @@ class FolderIngestService:
 
     def __init__(self, db: AsyncSession):
         self.db = db
-        self.ctrl = IngestController(db)
+        self.ctrl = IngestService(db)
 
     @staticmethod
     def list_files(folder: Path) -> list[Path]:

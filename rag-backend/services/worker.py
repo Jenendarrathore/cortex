@@ -6,8 +6,8 @@ from typing import Any
 
 from sqlalchemy import select, text
 
-from controllers.folder_ingest import FolderIngestService
-from controllers.ingest import IngestController
+from services.folder_ingest import FolderIngestService
+from services.ingest import IngestService
 from core.database import AsyncSessionLocal
 from core.enums import FileStatus, IngestStatus, JobKind, JobStatus, LogLevel
 from core.logging import get_logger
@@ -39,7 +39,7 @@ async def _process_file_job(db, job: IngestionJob) -> None:
     await _update_stats(db, job, total=1, status=JobStatus.RUNNING)
     await db.commit()
     try:
-        ctrl = IngestController(db)
+        ctrl = IngestService(db)
         result = await ctrl.ingest_file(filename, raw)
         result_data = result.model_dump(exclude_none=True)
         if result.status == IngestStatus.SKIPPED:
@@ -60,7 +60,7 @@ async def _process_text_job(db, job: IngestionJob) -> None:
     await db.commit()
     try:
         req = IngestTextRequest(**job.payload)
-        ctrl = IngestController(db)
+        ctrl = IngestService(db)
         result = await ctrl.ingest_text(req)
         result_data = result.model_dump(exclude_none=True)
         if result.status == IngestStatus.SKIPPED:

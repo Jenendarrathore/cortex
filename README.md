@@ -162,10 +162,16 @@ make lint                 # ruff (python)
 
 ```
 rag-backend/   FastAPI API, ingestion worker, retrieval (vector + FTS + rerank)
+  api/routes/    thin HTTP handlers
+  services/      business logic (ingest, query, jobs, folder ingest)
+  core/          infra (config, db, embedder, reranker, chunker, enums)
+  models/        SQLAlchemy ORM   schemas/  Pydantic contracts
+  db/schema.sql  source of truth for DDL (mirrored by models + enums)
 mcp/           MCP server exposing retrieval/ingestion tools
 rag-frontend/  React + Vite admin UI
 docs/          Docusaurus documentation site
-tests/         Deploy-proving smoke test
+sample-docs/   Example markdown you can ingest to try Cortex
+tests/         Smoke test (live stack) + schema-parity guard (no DB)
 ```
 
 ## Contributing

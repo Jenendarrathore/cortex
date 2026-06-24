@@ -47,7 +47,7 @@ async def record_search_log(
             logger.warning("search telemetry write failed: %s", e)
 
 
-class QueryController:
+class QueryService:
     def __init__(self, db: AsyncSession):
         self.db = db
 

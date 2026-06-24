@@ -4,7 +4,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
-from controllers.query import QueryController, record_search_log
+from services.query import QueryService, record_search_log
 from schemas.document import SearchRequest, SearchResponse
 
 router = APIRouter(tags=["search"])
@@ -19,7 +19,7 @@ async def search_endpoint(req: SearchRequest, background_tasks: BackgroundTasks,
         date_from  : str        — ISO date
         date_to    : str        — ISO date
     """
-    ctrl = QueryController(db)
+    ctrl = QueryService(db)
     t0 = time.perf_counter()
     results = await ctrl.search(req)
     latency_ms = int((time.perf_counter() - t0) * 1000)

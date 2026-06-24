@@ -96,7 +96,7 @@ curl "http://localhost:8002/documents/?skip=20&limit=20"
 [
   {
     "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "file_path": "rag-docs/architecture.md",
+    "file_path": "sample-docs/architecture.md",
     "file_hash": "a1b2c3d4e5f6...",
     "title": "System Architecture",
     "author": "Jenendar",
@@ -149,7 +149,7 @@ All fields from `DocumentResponse` (see above), plus:
 ```json
 {
   "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "file_path": "rag-docs/architecture.md",
+  "file_path": "sample-docs/architecture.md",
   "file_hash": "a1b2c3d4e5f6...",
   "title": "System Architecture",
   "author": "Jenendar",
@@ -216,7 +216,7 @@ Content-Type: `multipart/form-data`
 
 ```bash
 curl -X POST http://localhost:8002/documents/upload \
-  -F "file=@rag-docs/architecture.md"
+  -F "file=@sample-docs/architecture.md"
 ```
 
 **Response `202 Accepted`**
@@ -312,7 +312,7 @@ Content-Type: `application/x-www-form-urlencoded`
 
 ```bash
 curl -X POST http://localhost:8002/documents/folder \
-  -d "folder_path=/Users/yourname/Documents/cortex/rag-docs"
+  -d "folder_path=/Users/yourname/Documents/cortex/sample-docs"
 ```
 
 **Response `202 Accepted`**
@@ -435,7 +435,7 @@ Content-Type: `application/json`
       "heading": "Chunking Algorithm",
       "score": 0.9231,
       "title": "System Architecture",
-      "file_path": "rag-docs/architecture.md",
+      "file_path": "sample-docs/architecture.md",
       "source_url": "https://example.com/architecture",
       "category": "engineering",
       "tags": ["backend", "chunking"],

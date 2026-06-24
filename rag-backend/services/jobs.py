@@ -1,4 +1,4 @@
-"""Job controller — all DB access for ingestion jobs and their logs.
+"""Job service — all DB access for ingestion jobs and their logs.
 
 Keeps the HTTP routes (api/routes/jobs.py, documents.py) thin: they translate
 requests/responses, this owns the queries and the SSE progress stream.
@@ -19,7 +19,7 @@ from core.exceptions import JobNotFound
 from models.job import IngestionJob, JobLog
 
 
-class JobController:
+class JobService:
     def __init__(self, db: AsyncSession):
         self.db = db
 

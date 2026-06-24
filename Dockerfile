@@ -24,6 +24,9 @@ RUN pip install -r requirements.txt
 COPY rag-backend/ ./rag-backend/
 COPY mcp/ ./mcp/
 
+# Sample documents — ingestable at /app/sample-docs (folder ingest demo).
+COPY sample-docs/ ./sample-docs/
+
 # Default service = backend. Worker / mcp override command + working_dir in compose.
 WORKDIR /app/rag-backend
 EXPOSE 8002 8001

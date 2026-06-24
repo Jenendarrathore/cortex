@@ -10,7 +10,7 @@ import uuid
 from arq.connections import ArqRedis, RedisSettings
 from sqlalchemy import text
 
-from controllers.worker import process_job
+from services.worker import process_job
 from core.config import settings
 from core.database import AsyncSessionLocal
 from core.enums import JobStatus
