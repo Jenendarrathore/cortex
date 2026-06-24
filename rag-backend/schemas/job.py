@@ -6,13 +6,15 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
+from core.enums import JobKind, JobStatus, LogLevel
+
 
 class JobLogResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
     job_id: uuid.UUID
-    level: str
+    level: LogLevel
     message: str
     file: str | None = None
     created_at: datetime | None = None
@@ -22,8 +24,8 @@ class JobResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
-    kind: str
-    status: str
+    kind: JobKind
+    status: JobStatus
     total: int
     processed: int
     added: int
@@ -50,4 +52,4 @@ class JobDetail(JobResponse):
 
 class EnqueueResponse(BaseModel):
     job_id: uuid.UUID
-    status: str = "queued"
+    status: JobStatus = JobStatus.QUEUED

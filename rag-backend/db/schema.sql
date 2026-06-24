@@ -51,6 +51,8 @@ CREATE INDEX IF NOT EXISTS idx_documents_category   ON documents (category);
 CREATE INDEX IF NOT EXISTS idx_documents_updated_at ON documents (updated_at DESC);
 
 -- ── ingestion_jobs ───────────────────────────────────────────────────────────
+-- The kind/status/level CHECK values below are mirrored by the StrEnums in
+-- rag-backend/core/enums.py (JobKind/JobStatus/LogLevel). Change both together.
 -- Postgres-backed job queue. Worker polls for status='queued', processes, updates.
 -- SINGLE PROCESS WARNING: worker is intentionally started once in lifespan.
 -- With uvicorn --workers N or multiple replicas, N workers will all drain the

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { api, type IngestTextPayload } from "@/lib/api"
+import { api, ACTIVE_JOB_STATUSES, type IngestTextPayload } from "@/lib/api"
 
-const ACTIVE_STATUSES = new Set(["queued", "running"])
+const ACTIVE_STATUSES = new Set<string>(ACTIVE_JOB_STATUSES)
 
 export const PAGE_SIZE = 20
 

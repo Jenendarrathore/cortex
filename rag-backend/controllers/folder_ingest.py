@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from controllers.ingest import IngestController
+from core.enums import FileStatus, IngestStatus
 from core.logging import get_logger
 from models.document import Document
 
@@ -48,24 +49,24 @@ class FolderIngestService:
                 was_existing = result_check.scalars().first() is not None
                 result = await self.ctrl.ingest_file(rel_path, raw)
 
-                if result.status == "skipped":
+                if result.status == IngestStatus.SKIPPED:
                     stats["skipped"] += 1
-                    status = "skipped"
+                    status = FileStatus.SKIPPED
                     logger.info("SKIP  %s", rel_path)
                 elif was_existing:
                     stats["updated"] += 1
-                    status = "updated"
+                    status = FileStatus.UPDATED
                     logger.info("UPD   %s (%s chunks)", rel_path, result.chunks)
                 else:
                     stats["added"] += 1
-                    status = "added"
+                    status = FileStatus.ADDED
                     logger.info("ADD   %s (%s chunks)", rel_path, result.chunks)
 
                 await emit({"event": "file", "file": rel_path, "status": status, "chunks": result.chunks, **stats})
             except Exception as e:  # noqa: BLE001 — one bad file shouldn't abort the batch
                 stats["errors"] += 1
                 logger.error("ERROR %s: %s", rel_path, e)
-                await emit({"event": "file", "file": rel_path, "status": "error", "error": str(e), **stats})
+                await emit({"event": "file", "file": rel_path, "status": FileStatus.ERROR, "error": str(e), **stats})
 
         await emit({"event": "done", **stats})
         return stats

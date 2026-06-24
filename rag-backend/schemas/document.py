@@ -6,6 +6,8 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from core.enums import IngestStatus
+
 
 class DocumentResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -50,7 +52,7 @@ class IngestTextRequest(BaseModel):
 
 
 class IngestResponse(BaseModel):
-    status: str
+    status: IngestStatus
     document_id: str | None = None
     file: str | None = None
     chunks: int | None = None

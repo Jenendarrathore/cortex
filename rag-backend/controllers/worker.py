@@ -9,6 +9,7 @@ from sqlalchemy import select, text
 from controllers.folder_ingest import FolderIngestService
 from controllers.ingest import IngestController
 from core.database import AsyncSessionLocal
+from core.enums import FileStatus, IngestStatus, JobKind, JobStatus, LogLevel
 from core.logging import get_logger
 from models.job import IngestionJob, JobLog
 from schemas.document import IngestTextRequest
@@ -16,7 +17,7 @@ from schemas.document import IngestTextRequest
 logger = get_logger(__name__)
 
 
-async def _add_log(db, job_id: uuid.UUID, level: str, message: str, file: str | None = None) -> None:
+async def _add_log(db, job_id: uuid.UUID, level: LogLevel, message: str, file: str | None = None) -> None:
     db.add(JobLog(job_id=job_id, level=level, message=message, file=file))
     await db.flush()
 
@@ -35,57 +36,57 @@ async def _process_file_job(db, job: IngestionJob) -> None:
     payload = job.payload
     filename: str = payload["filename"]
     raw: bytes = base64.b64decode(payload["content_b64"])
-    await _update_stats(db, job, total=1, status="running")
+    await _update_stats(db, job, total=1, status=JobStatus.RUNNING)
     await db.commit()
     try:
         ctrl = IngestController(db)
         result = await ctrl.ingest_file(filename, raw)
         result_data = result.model_dump(exclude_none=True)
-        if result.status == "skipped":
-            await _update_stats(db, job, processed=1, skipped=1, status="done", result=result_data)
-            await _add_log(db, job.id, "info", f"skipped (unchanged): {filename}", file=filename)
+        if result.status == IngestStatus.SKIPPED:
+            await _update_stats(db, job, processed=1, skipped=1, status=JobStatus.DONE, result=result_data)
+            await _add_log(db, job.id, LogLevel.INFO, f"skipped (unchanged): {filename}", file=filename)
         else:
-            await _update_stats(db, job, processed=1, added=1, status="done", result=result_data)
-            await _add_log(db, job.id, "info", f"ingested: {filename} ({result.chunks or 0} chunks)", file=filename)
+            await _update_stats(db, job, processed=1, added=1, status=JobStatus.DONE, result=result_data)
+            await _add_log(db, job.id, LogLevel.INFO, f"ingested: {filename} ({result.chunks or 0} chunks)", file=filename)
         await db.commit()
     except Exception as e:
-        await _update_stats(db, job, processed=1, errors=1, status="failed", error=str(e))
-        await _add_log(db, job.id, "error", f"failed: {e}", file=filename)
+        await _update_stats(db, job, processed=1, errors=1, status=JobStatus.FAILED, error=str(e))
+        await _add_log(db, job.id, LogLevel.ERROR, f"failed: {e}", file=filename)
         await db.commit()
 
 
 async def _process_text_job(db, job: IngestionJob) -> None:
-    await _update_stats(db, job, total=1, status="running")
+    await _update_stats(db, job, total=1, status=JobStatus.RUNNING)
     await db.commit()
     try:
         req = IngestTextRequest(**job.payload)
         ctrl = IngestController(db)
         result = await ctrl.ingest_text(req)
         result_data = result.model_dump(exclude_none=True)
-        if result.status == "skipped":
-            await _update_stats(db, job, processed=1, skipped=1, status="done", result=result_data)
-            await _add_log(db, job.id, "info", f"skipped (unchanged): {result.file}", file=result.file)
+        if result.status == IngestStatus.SKIPPED:
+            await _update_stats(db, job, processed=1, skipped=1, status=JobStatus.DONE, result=result_data)
+            await _add_log(db, job.id, LogLevel.INFO, f"skipped (unchanged): {result.file}", file=result.file)
         else:
-            await _update_stats(db, job, processed=1, added=1, status="done", result=result_data)
-            await _add_log(db, job.id, "info", f"ingested: {result.file} ({result.chunks or 0} chunks)", file=result.file)
+            await _update_stats(db, job, processed=1, added=1, status=JobStatus.DONE, result=result_data)
+            await _add_log(db, job.id, LogLevel.INFO, f"ingested: {result.file} ({result.chunks or 0} chunks)", file=result.file)
         await db.commit()
     except Exception as e:
-        await _update_stats(db, job, processed=1, errors=1, status="failed", error=str(e))
-        await _add_log(db, job.id, "error", f"failed: {e}")
+        await _update_stats(db, job, processed=1, errors=1, status=JobStatus.FAILED, error=str(e))
+        await _add_log(db, job.id, LogLevel.ERROR, f"failed: {e}")
         await db.commit()
 
 
 async def _process_folder_job(db, job: IngestionJob) -> None:
     folder_path: str = job.payload["folder_path"]
     files = FolderIngestService.list_files(Path(folder_path))
-    await _update_stats(db, job, status="running", total=len(files))
+    await _update_stats(db, job, status=JobStatus.RUNNING, total=len(files))
     await db.commit()
 
     svc = FolderIngestService(db)
 
     async def on_event(ev: dict) -> None:
         if ev["event"] == "file":
-            level = "error" if ev["status"] == "error" else "info"
+            level = LogLevel.ERROR if ev["status"] == FileStatus.ERROR else LogLevel.INFO
             if ev.get("error"):
                 msg = f"error: {ev.get('file', '')} — {ev['error']}"
             else:
@@ -104,16 +105,16 @@ async def _process_folder_job(db, job: IngestionJob) -> None:
 
     try:
         stats = await svc.run(folder_path, on_event)
-        await _update_stats(db, job, status="done", result=stats)
+        await _update_stats(db, job, status=JobStatus.DONE, result=stats)
         await _add_log(
-            db, job.id, "info",
+            db, job.id, LogLevel.INFO,
             f"done: {stats['added']} added, {stats['updated']} updated, "
             f"{stats['skipped']} skipped, {stats['errors']} errors",
         )
         await db.commit()
     except Exception as e:
-        await _update_stats(db, job, status="failed", error=str(e))
-        await _add_log(db, job.id, "error", f"folder job failed: {e}")
+        await _update_stats(db, job, status=JobStatus.FAILED, error=str(e))
+        await _add_log(db, job.id, LogLevel.ERROR, f"folder job failed: {e}")
         await db.commit()
 
 
@@ -130,14 +131,14 @@ async def process_job(job_id: uuid.UUID) -> None:
 
             logger.info("Worker: starting %s job %s", job.kind, job_id)
 
-            if job.kind == "file":
+            if job.kind == JobKind.FILE:
                 await _process_file_job(db, job)
-            elif job.kind == "text":
+            elif job.kind == JobKind.TEXT:
                 await _process_text_job(db, job)
-            elif job.kind == "folder":
+            elif job.kind == JobKind.FOLDER:
                 await _process_folder_job(db, job)
             else:
-                await _update_stats(db, job, status="failed", error=f"unknown kind: {job.kind}")
+                await _update_stats(db, job, status=JobStatus.FAILED, error=f"unknown kind: {job.kind}")
                 await db.commit()
 
             logger.info("Worker: finished %s job %s", job.kind, job_id)
@@ -150,7 +151,7 @@ async def process_job(job_id: uuid.UUID) -> None:
                 )
                 job = result.scalars().first()
                 if job:
-                    await _update_stats(db, job, status="failed", error=str(e))
+                    await _update_stats(db, job, status=JobStatus.FAILED, error=str(e))
                     await db.commit()
             except Exception:
                 pass

@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { formatDateTime } from "@/lib/format"
 import { useJobs, useJob } from "@/hooks/queries"
-import { type Job } from "@/lib/api"
+import { type Job, type JobStatus, type LogLevel } from "@/lib/api"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -10,8 +10,8 @@ import { cn } from "@/lib/utils"
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: string }) {
-  const variants: Record<string, string> = {
+function StatusBadge({ status }: { status: JobStatus }) {
+  const variants: Record<JobStatus, string> = {
     queued: "bg-yellow-100 text-yellow-800 border-yellow-200",
     running: "bg-blue-100 text-blue-800 border-blue-200",
     done: "bg-green-100 text-green-800 border-green-200",
@@ -25,7 +25,7 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-function LevelBadge({ level }: { level: string }) {
+function LevelBadge({ level }: { level: LogLevel }) {
   if (level === "error") return <Badge variant="destructive" className="text-[10px]">error</Badge>
   if (level === "warn") return <Badge variant="outline" className="text-[10px] border-yellow-400 text-yellow-700">warn</Badge>
   return <Badge variant="outline" className="text-[10px]">info</Badge>

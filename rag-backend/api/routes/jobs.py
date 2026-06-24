@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from core.database import get_db
+from core.enums import TERMINAL_JOB_STATUSES
 from models.job import IngestionJob, JobLog
 from schemas.job import JobDetail, JobLogResponse, JobResponse
 
@@ -100,7 +101,7 @@ async def stream_job(job_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
             event = {**job_dict, "logs": new_logs}
             yield f"data: {json.dumps(event)}\n\n"
 
-            if job_dict["status"] in ("done", "failed"):
+            if job_dict["status"] in TERMINAL_JOB_STATUSES:
                 break
 
             await asyncio.sleep(1)

@@ -10,6 +10,7 @@ from sqlalchemy.orm import selectinload
 
 from core.chunker import chunk_by_headings
 from core.embedder import embed_batch
+from core.enums import IngestStatus
 from core.exceptions import DocumentNotFound
 from core.logging import get_logger
 from core.text_utils import strip_markdown
@@ -47,7 +48,7 @@ class IngestController:
 
         if existing and existing.file_hash == file_hash:
             return IngestResponse(
-                status="skipped",
+                status=IngestStatus.SKIPPED,
                 reason="unchanged",
                 file=file_path,
             )
@@ -110,7 +111,7 @@ class IngestController:
         await self.db.refresh(doc)
 
         return IngestResponse(
-            status="ok",
+            status=IngestStatus.OK,
             document_id=str(doc.id),
             file=req.file_path,
             chunks=len(chunks),

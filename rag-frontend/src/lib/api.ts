@@ -25,6 +25,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
+// ── Status vocabularies ───────────────────────────────────────────────────────
+// Mirror the backend StrEnums in rag-backend/core/enums.py (and the schema.sql
+// CHECK constraints). Keep these in sync when adding/changing a value.
+export type JobStatus = "queued" | "running" | "done" | "failed"
+export type JobKind = "file" | "folder" | "text"
+export type LogLevel = "info" | "warn" | "error"
+
+export const ACTIVE_JOB_STATUSES: readonly JobStatus[] = ["queued", "running"]
+
 export interface Document {
   id: string
   file_path: string
@@ -78,13 +87,13 @@ export interface SearchResult {
 
 export interface EnqueueResponse {
   job_id: string
-  status: string
+  status: JobStatus
 }
 
 export interface Job {
   id: string
-  kind: string
-  status: string
+  kind: JobKind
+  status: JobStatus
   total: number
   processed: number
   added: number
@@ -101,7 +110,7 @@ export interface Job {
 export interface JobLog {
   id: string
   job_id: string
-  level: string
+  level: LogLevel
   message: string
   file: string | null
   created_at: string | null

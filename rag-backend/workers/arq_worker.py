@@ -13,6 +13,7 @@ from sqlalchemy import text
 from controllers.worker import process_job
 from core.config import settings
 from core.database import AsyncSessionLocal
+from core.enums import JobStatus
 from core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -25,9 +26,10 @@ async def startup(ctx: dict) -> None:
         try:
             result = await db.execute(
                 text(
-                    "UPDATE ingestion_jobs SET status='queued', updated_at=now() "
-                    "WHERE status='running' RETURNING id"
-                )
+                    "UPDATE ingestion_jobs SET status=:queued, updated_at=now() "
+                    "WHERE status=:running RETURNING id"
+                ),
+                {"queued": JobStatus.QUEUED.value, "running": JobStatus.RUNNING.value},
             )
             rows = result.fetchall()
             await db.commit()

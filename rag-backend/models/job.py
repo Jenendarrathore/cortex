@@ -3,6 +3,7 @@ from sqlalchemy import Column, Text, Integer, ForeignKey, Boolean, DateTime, fun
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from core.database import Base
+from core.enums import JobStatus, LogLevel
 
 
 class IngestionJob(Base):
@@ -10,7 +11,7 @@ class IngestionJob(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     kind = Column(Text, nullable=False)
-    status = Column(Text, nullable=False, default="queued")
+    status = Column(Text, nullable=False, default=JobStatus.QUEUED.value)
     payload = Column(JSONB, nullable=False, default=dict)
     total = Column(Integer, nullable=False, default=0)
     processed = Column(Integer, nullable=False, default=0)
@@ -32,7 +33,7 @@ class JobLog(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     job_id = Column(UUID(as_uuid=True), ForeignKey("ingestion_jobs.id", ondelete="CASCADE"), nullable=False)
-    level = Column(Text, nullable=False, default="info")
+    level = Column(Text, nullable=False, default=LogLevel.INFO.value)
     message = Column(Text, nullable=False)
     file = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
