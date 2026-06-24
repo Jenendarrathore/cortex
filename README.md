@@ -52,21 +52,31 @@ The three Python services share one image (`cortex-py`), run with different comm
 
 ## Quickstart (Docker)
 
-Requires Docker + Docker Compose. First build is large (~torch + sentence-transformers).
+The only prerequisite is **Docker + Docker Compose**. One command does everything —
+creates `.env`, builds, starts the full stack, waits until it's healthy, and seeds
+a sample document so search works immediately:
 
 ```bash
 git clone <your-fork-url> cortex && cd cortex
-cp .env.example .env          # set PGPASSWORD
-docker compose up             # or: make up   (detached)
+make quickstart
 ```
 
-Then open:
+> First build is large (torch + sentence-transformers) and can take 10–20 min.
+> No `.env` editing needed for local use — sane defaults are baked in.
+
+When it finishes it prints your URLs:
 
 - **Admin UI** → http://localhost:5173
 - **API docs** → http://localhost:8002/docs
 - **Docs site** → http://localhost:3000
+- **MCP** → http://localhost:8001/mcp
 
-Ingest your first document from the UI, or via the API:
+Useful follow-ups: `make logs` (tail everything) · `make seed` (re-seed sample) ·
+`make down` (stop, keep data). Prefer raw compose? `docker compose up -d --build`
+still works.
+
+The seeded sample means search already returns results. Ingest your own from the
+UI, or via the API:
 
 ```bash
 curl -X POST http://localhost:8002/documents/text \
@@ -105,12 +115,19 @@ Restart Claude Desktop to load it. (Confirm your container name with `docker ps`
 
 ## Bare-metal install (no Docker)
 
-Driven by the Makefile — installs Postgres+pgvector, Redis, Ollama, Node:
+For contributors who want native hot-reload. Driven by the Makefile — installs
+Postgres+pgvector, Redis, Ollama, Node:
 
 ```bash
 make mac-setup      # or: make linux-setup  /  make windows-setup (WSL2)
 make setup          # venv + python + frontend + docs deps
-cp .env.example .env
+make dev            # API :8002 + worker + UI :5173, all hot-reload, Ctrl-C stops all
+```
+
+`make dev` auto-creates `.env` and runs the three core services together. Need them
+separately (e.g. for the docs site)? Run individually:
+
+```bash
 make rag            # API      :8002
 make rag-worker     # worker
 make rag-ui         # UI       :5173

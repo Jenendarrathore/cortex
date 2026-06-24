@@ -146,6 +146,19 @@ docs:
 
 COMPOSE := docker compose
 
+# Dead-simple: clone -> make quickstart. Creates .env, builds, starts the whole
+# stack, waits for health, seeds a sample doc, prints the URLs. Idempotent.
+quickstart:
+	./scripts/quickstart.sh
+
+# Ingest a sample document + run a sample search against the running stack.
+seed:
+	./scripts/seed.sh
+
+# Native hot-reload dev: API + worker + UI together (needs `make setup` first).
+dev:
+	./scripts/dev.sh
+
 # Build all images.
 build:
 	$(COMPOSE) build
@@ -184,4 +197,4 @@ kill:
 	-lsof -ti:5173 | xargs kill 2>/dev/null
 	-lsof -ti:3000 | xargs kill 2>/dev/null
 
-.PHONY: mac-setup linux-setup windows-setup setup install install-rag-ui install-docs init-db rag rag-worker mcp rag-ui docs build up up-dev down logs lint test kill
+.PHONY: mac-setup linux-setup windows-setup setup install install-rag-ui install-docs init-db rag rag-worker mcp rag-ui docs quickstart seed dev build up up-dev down logs lint test kill

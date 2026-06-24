@@ -81,7 +81,7 @@ services:
     image: cortex-py
     environment: *py-env
     ports:
-      - "8002:8002"
+      - "${BACKEND_PORT:-8002}:8002"
     depends_on:
       postgres:
         condition: service_healthy
@@ -115,7 +115,7 @@ services:
       RAG_SERVER_URL: http://backend:8002
       RAG_API_KEY: ${API_KEY:-}
     ports:
-      - "8001:8001"
+      - "${MCP_HOST_PORT:-8001}:8001"
     depends_on:
       backend:
         condition: service_started
@@ -128,7 +128,7 @@ services:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:8002}
     image: cortex-web
     ports:
-      - "5173:80"
+      - "${FRONTEND_PORT:-5173}:80"
     depends_on:
       backend:
         condition: service_started
@@ -139,7 +139,7 @@ services:
       context: ./docs
     image: cortex-docs
     ports:
-      - "3000:80"
+      - "${DOCS_PORT:-3000}:80"
     restart: unless-stopped
 
 volumes:
