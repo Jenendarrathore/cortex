@@ -1,5 +1,4 @@
 import base64
-import uuid
 from pathlib import Path
 
 from arq import ArqRedis
@@ -9,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
 from core.enums import JobKind
 from controllers.ingest import IngestController
-from models.job import IngestionJob
+from controllers.jobs import JobController
 from schemas.document import DocumentResponse, DocumentDetail, IngestTextRequest
 from schemas.job import EnqueueResponse
 
@@ -18,15 +17,6 @@ router = APIRouter(prefix="/documents", tags=["documents"])
 
 def _get_arq(request: Request) -> ArqRedis:
     return request.app.state.arq
-
-
-async def _enqueue(db: AsyncSession, arq: ArqRedis, kind: JobKind, payload: dict) -> IngestionJob:
-    job = IngestionJob(kind=kind, payload=payload)
-    db.add(job)
-    await db.commit()
-    await db.refresh(job)
-    await arq.enqueue_job("ingest_job", str(job.id))
-    return job
 
 
 @router.get("/", response_model=list[DocumentResponse])
@@ -44,8 +34,7 @@ async def upload_document(
     if Path(file.filename).suffix.lower() not in (".md", ".txt"):
         raise HTTPException(400, "Only .md and .txt files accepted")
     raw = await file.read()
-    arq = _get_arq(request)
-    job = await _enqueue(db, arq, JobKind.FILE, {
+    job = await JobController(db).enqueue(_get_arq(request), JobKind.FILE, {
         "filename": file.filename,
         "content_b64": base64.b64encode(raw).decode(),
     })
@@ -54,8 +43,7 @@ async def upload_document(
 
 @router.post("/text", response_model=EnqueueResponse, status_code=202, summary="Ingest raw markdown text")
 async def ingest_text(request: Request, req: IngestTextRequest, db: AsyncSession = Depends(get_db)):
-    arq = _get_arq(request)
-    job = await _enqueue(db, arq, JobKind.TEXT, req.model_dump())
+    job = await JobController(db).enqueue(_get_arq(request), JobKind.TEXT, req.model_dump())
     return EnqueueResponse(job_id=job.id)
 
 
@@ -64,8 +52,7 @@ async def ingest_text(request: Request, req: IngestTextRequest, db: AsyncSession
 async def ingest_folder(request: Request, folder_path: str = Form(...), db: AsyncSession = Depends(get_db)):
     if not Path(folder_path).is_dir():
         raise HTTPException(400, f"Not a directory: {folder_path}")
-    arq = _get_arq(request)
-    job = await _enqueue(db, arq, JobKind.FOLDER, {"folder_path": folder_path})
+    job = await JobController(db).enqueue(_get_arq(request), JobKind.FOLDER, {"folder_path": folder_path})
     return EnqueueResponse(job_id=job.id)
 
 

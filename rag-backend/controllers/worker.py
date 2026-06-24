@@ -153,5 +153,5 @@ async def process_job(job_id: uuid.UUID) -> None:
                 if job:
                     await _update_stats(db, job, status=JobStatus.FAILED, error=str(e))
                     await db.commit()
-            except Exception:
-                pass
+            except Exception as recovery_err:
+                logger.error("Worker: failed to mark job %s as failed: %s", job_id, recovery_err)

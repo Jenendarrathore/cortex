@@ -19,6 +19,10 @@ class DocumentNotFound(RagError):
     status_code = 404
 
 
+class JobNotFound(RagError):
+    status_code = 404
+
+
 class IngestError(RagError):
     status_code = 400
 

@@ -24,7 +24,7 @@ def retrieve(
 
     Args:
         query:     The user's question or topic to search for.
-        top_k:     Number of passages to return (default 5, max 20).
+        top_k:     Number of passages to return (default 5, max 100).
         tags:      Only search docs tagged with ANY of these e.g. ["python", "ai"].
         category:  Only search docs in this exact category e.g. "engineering".
         date_from: Only search docs dated on or after (YYYY-MM-DD).

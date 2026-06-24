@@ -31,7 +31,8 @@ def ingest_document(
         date:       Publication date (YYYY-MM-DD).
         source_url: Original URL or source reference.
 
-    Returns status with document_id and number of chunks created.
+    Ingestion is asynchronous — returns a queued job id; the document becomes
+    searchable once the worker finishes processing it.
     """
     result = client.post("/documents/text", {
         "content":    content,
@@ -44,11 +45,9 @@ def ingest_document(
         "source_url": source_url,
     })
 
-    if result.get("status") == "skipped":
-        return f"Document unchanged, skipped: {file_path}"
-
+    # Ingestion is asynchronous: the API enqueues a job and returns immediately.
+    # The document becomes searchable once the worker finishes processing it.
     return (
-        f"Ingested: {file_path}\n"
-        f"document_id: {result.get('document_id')}\n"
-        f"chunks: {result.get('chunks')}"
+        f"Queued ingestion of {file_path} (job {result.get('job_id')}).\n"
+        f"It will be searchable once the worker finishes processing."
     )

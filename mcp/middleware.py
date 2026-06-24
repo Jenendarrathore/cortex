@@ -55,20 +55,11 @@ def _log(tool_name: str, kwargs: dict) -> None:
     logger.info("tool=%s args=%s", tool_name, {k: v for k, v in kwargs.items() if k != "content"})
 
 
-@register
-def _validate_query(tool_name: str, kwargs: dict) -> None:
-    query = kwargs.get("query", "")
-    if query and len(query.strip()) < 3:
-        raise ToolError("Query too short — provide at least 3 characters.")
-    if query and len(query) > 2000:
-        raise ToolError("Query too long — max 2000 characters.")
-
-
-@register
-def _validate_top_k(tool_name: str, kwargs: dict) -> None:
-    top_k = kwargs.get("top_k")
-    if top_k is not None and (top_k < 1 or top_k > 20):
-        raise ToolError("top_k must be between 1 and 20.")
+# NOTE: query length and top_k bounds are intentionally NOT validated here.
+# The backend Pydantic schema (rag-backend/schemas/document.py: SearchRequest) is
+# the single source of truth — it enforces query 1..2000 chars and top_k 1..100,
+# and the MCP client (client.py) surfaces its 422 messages cleanly. Duplicating
+# the numbers here previously caused drift (a hidden top_k ceiling of 20).
 
 
 @register

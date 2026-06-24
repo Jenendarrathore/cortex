@@ -1,11 +1,50 @@
+import json
+
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.database import AsyncSessionLocal
 from core.embedder import embed
 from core.reranker import rerank_async
 from core.config import settings
+from core.logging import get_logger
 from core.text_utils import strip_markdown
 from schemas.document import SearchRequest
+
+logger = get_logger(__name__)
+
+
+async def record_search_log(
+    query: str,
+    filters: dict | None,
+    result_count: int,
+    latency_ms: int,
+    top_chunk_ids: list[str],
+    reranked: bool,
+) -> None:
+    """Persist search telemetry. Runs post-response in a BackgroundTask, on its
+    own session. A failure here must never affect the caller — but it is logged,
+    not silently swallowed."""
+    async with AsyncSessionLocal() as db:
+        try:
+            await db.execute(
+                text("""
+                    INSERT INTO search_logs (query, filters, result_count, latency_ms, top_chunk_ids, reranked)
+                    VALUES (:query, CAST(:filters AS jsonb), :result_count, :latency_ms,
+                            CAST(:chunk_ids AS uuid[]), :reranked)
+                """),
+                {
+                    "query": query,
+                    "filters": json.dumps(filters) if filters else "null",
+                    "result_count": result_count,
+                    "latency_ms": latency_ms,
+                    "chunk_ids": "{" + ",".join(top_chunk_ids) + "}" if top_chunk_ids else "{}",
+                    "reranked": reranked,
+                },
+            )
+            await db.commit()
+        except Exception as e:
+            logger.warning("search telemetry write failed: %s", e)
 
 
 class QueryController:
