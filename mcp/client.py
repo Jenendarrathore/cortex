@@ -7,10 +7,16 @@ source of truth for query/top_k bounds; see mcp/middleware.py).
 """
 
 import os
+import uuid
 import httpx
 
 RAG_URL = os.getenv("RAG_SERVER_URL", "http://localhost:8002")
 _API_KEY = os.getenv("RAG_API_KEY", "")
+
+# One id per server process. With stdio transport the client spawns a fresh
+# process per conversation, so this groups all searches from one session —
+# making "was retrieve called twice for this question?" answerable by query.
+SESSION_ID = str(uuid.uuid4())
 
 
 class BackendError(RuntimeError):

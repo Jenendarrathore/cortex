@@ -43,6 +43,8 @@ The UI has four tabs in the top navigation bar: **Documents**, **Ingest**, **Sea
 
 ## Documents tab
 
+![Documents tab](/img/screenshots/01-documents.png)
+
 The Documents tab shows a paginated table of documents currently in the knowledge base. The frontend fetches 20 documents per page using the `skip` and `limit` parameters on `GET /documents/`. Use the **Previous** and **Next** buttons to navigate between pages.
 
 Each row displays:
@@ -96,6 +98,8 @@ Each row in the Documents table has a delete action. Deleting a document removes
 
 ## Ingest tab
 
+![Ingest tab](/img/screenshots/02-ingest.png)
+
 The Ingest tab has three sub-tabs for adding content to the knowledge base. All three methods enqueue a background job and navigate to the **Jobs** tab so you can watch progress. No tab blocks waiting for ingestion to complete.
 
 ### Upload File tab
@@ -131,6 +135,8 @@ This calls `POST /documents/text` and enqueues a background job.
 ---
 
 ## Search tab
+
+![Search tab with ranked results](/img/screenshots/04-search-results.png)
 
 The Search tab lets you run queries against the knowledge base using the full hybrid search pipeline — the same pipeline Claude Desktop uses when you ask it a question.
 
@@ -177,6 +183,8 @@ The Search tab is the fastest way to verify that a newly ingested document is re
 ---
 
 ## Jobs tab
+
+![Jobs tab](/img/screenshots/05-jobs.png)
 
 The Jobs tab shows all background ingestion jobs, newest first. It is the primary way to monitor and audit ingestion progress.
 

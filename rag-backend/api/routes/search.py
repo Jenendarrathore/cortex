@@ -32,6 +32,8 @@ async def search_endpoint(req: SearchRequest, background_tasks: BackgroundTasks,
         latency_ms=latency_ms,
         top_chunk_ids=[r["id"] for r in results],
         reranked=req.rerank,
+        session_id=req.session_id,
+        user_query=req.user_query,
     )
 
     return SearchResponse(query=req.query, results=results)

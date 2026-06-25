@@ -96,7 +96,9 @@ CREATE INDEX IF NOT EXISTS idx_job_logs_job_id ON job_logs (job_id, created_at);
 -- Written post-response via BackgroundTask — never adds latency to searches.
 CREATE TABLE IF NOT EXISTS search_logs (
     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    query          TEXT NOT NULL,
+    session_id     UUID,
+    query          TEXT NOT NULL,       -- the retrieval query that hit search (may be agent-rewritten)
+    user_query     TEXT,                -- the verbatim user question, when the agent supplies it
     filters        JSONB,
     result_count   INTEGER NOT NULL DEFAULT 0,
     latency_ms     INTEGER,
@@ -106,3 +108,6 @@ CREATE TABLE IF NOT EXISTS search_logs (
 );
 
 CREATE INDEX IF NOT EXISTS idx_search_logs_created_at ON search_logs (created_at DESC);
+-- Group all searches from one client session (e.g. one MCP conversation) to
+-- audit multi-call reasoning ("was retrieve called twice for this question?").
+CREATE INDEX IF NOT EXISTS idx_search_logs_session_id ON search_logs (session_id);

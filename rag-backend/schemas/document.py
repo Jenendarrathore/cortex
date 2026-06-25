@@ -65,6 +65,8 @@ class SearchRequest(BaseModel):
     top_k: int = Field(5, ge=1, le=100)
     rerank: bool = True
     filters: dict[str, Any] | None = None
+    session_id: str | None = Field(None, description="Client session id — groups searches from one conversation")
+    user_query: str | None = Field(None, max_length=2000, description="Verbatim user question, before any agent rewrite")
 
 
 class SearchResponse(BaseModel):

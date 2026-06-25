@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="rag-frontend/src/assets/cortex-logo.png" alt="Cortex logo" width="220">
+</p>
+
 <h1 align="center">Cortex</h1>
 
 <p align="center">
@@ -34,6 +38,23 @@ and other MCP clients can search your private knowledge base directly.
 - 🖥️ **Admin UI** — React app to ingest, browse documents, and search.
 - 📚 **Docs site** — bundled Docusaurus documentation.
 - 🐳 **One command** — `docker compose up` brings up the entire stack.
+
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/ui/04-search-results.png" alt="Hybrid search with ranked, reranked results" width="800"><br>
+  <em>Hybrid search — dense + full-text, fused and reranked, with relevance scores.</em>
+</p>
+
+| Documents | Ingest |
+|-----------|--------|
+| ![Documents](screenshots/ui/01-documents.png) | ![Ingest](screenshots/ui/02-ingest.png) |
+| **Browse the corpus** | **Upload files, folders, or paste text** |
+
+| Jobs | Docs site |
+|------|-----------|
+| ![Jobs](screenshots/ui/05-jobs.png) | ![Docs](screenshots/docs/01-home.png) |
+| **Track async ingestion jobs** | **Bundled Docusaurus documentation** |
 
 ## Architecture
 

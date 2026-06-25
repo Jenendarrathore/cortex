@@ -11,7 +11,7 @@ import {
   WifiOff,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Brand, PRODUCT_NAME } from "@/components/Brand"
+import { Brand, LogoMark, PRODUCT_NAME } from "@/components/Brand"
 import { useTheme } from "@/hooks/useTheme"
 import { useHealth } from "@/hooks/queries"
 import { API_BASE } from "@/lib/api"
@@ -187,8 +187,12 @@ function Topbar() {
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-border bg-background/80 px-4 backdrop-blur-md sm:px-6">
       <div className="flex items-center gap-2 text-sm">
-        <span className="font-semibold text-muted-foreground md:hidden">{PRODUCT_NAME}</span>
-        <span className="hidden text-muted-foreground md:inline">{PRODUCT_NAME}</span>
+        <span className="flex items-center gap-2 font-semibold text-muted-foreground">
+          <span className="grid h-7 w-7 place-items-center overflow-hidden rounded-lg border border-border bg-accent/30">
+            <LogoMark className="h-7 w-7" />
+          </span>
+          <span>{PRODUCT_NAME}</span>
+        </span>
         <span className="text-muted-foreground/40">/</span>
         <span className="font-semibold text-foreground">{current?.label ?? "Home"}</span>
       </div>

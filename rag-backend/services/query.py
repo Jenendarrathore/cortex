@@ -21,6 +21,8 @@ async def record_search_log(
     latency_ms: int,
     top_chunk_ids: list[str],
     reranked: bool,
+    session_id: str | None = None,
+    user_query: str | None = None,
 ) -> None:
     """Persist search telemetry. Runs post-response in a BackgroundTask, on its
     own session. A failure here must never affect the caller — but it is logged,
@@ -29,12 +31,14 @@ async def record_search_log(
         try:
             await db.execute(
                 text("""
-                    INSERT INTO search_logs (query, filters, result_count, latency_ms, top_chunk_ids, reranked)
-                    VALUES (:query, CAST(:filters AS jsonb), :result_count, :latency_ms,
+                    INSERT INTO search_logs (session_id, query, user_query, filters, result_count, latency_ms, top_chunk_ids, reranked)
+                    VALUES (CAST(:session_id AS uuid), :query, :user_query, CAST(:filters AS jsonb), :result_count, :latency_ms,
                             CAST(:chunk_ids AS uuid[]), :reranked)
                 """),
                 {
+                    "session_id": session_id,
                     "query": query,
+                    "user_query": user_query,
                     "filters": json.dumps(filters) if filters else "null",
                     "result_count": result_count,
                     "latency_ms": latency_ms,

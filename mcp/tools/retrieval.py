@@ -15,6 +15,7 @@ def retrieve(
     category: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
+    user_query: str | None = None,
 ) -> str:
     """
     Retrieve relevant passages from the knowledge base for a given query.
@@ -23,8 +24,10 @@ def retrieve(
     Apply filters to narrow the search space before retrieval.
 
     Args:
-        query:     The user's question or topic to search for.
-        top_k:     Number of passages to return (default 5, max 100).
+        query:      The search query — rephrase the user's question into keywords if helpful.
+        top_k:      Number of passages to return (default 5, max 100).
+        user_query: The user's ORIGINAL, verbatim question (pass this whenever you
+                    rewrote `query`, so retrieval quality can be evaluated later).
         tags:      Only search docs tagged with ANY of these e.g. ["python", "ai"].
         category:  Only search docs in this exact category e.g. "engineering".
         date_from: Only search docs dated on or after (YYYY-MM-DD).
@@ -39,10 +42,12 @@ def retrieve(
     if date_to:   filters["date_to"]   = date_to
 
     result = client.post("/search", {
-        "query":   query,
-        "top_k":   top_k,
-        "rerank":  True,
-        "filters": filters or None,
+        "query":      query,
+        "top_k":      top_k,
+        "rerank":     True,
+        "filters":    filters or None,
+        "session_id": client.SESSION_ID,
+        "user_query": user_query,
     })
 
     chunks = result.get("results", [])

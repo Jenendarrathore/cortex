@@ -1,21 +1,19 @@
 import { cn } from "@/lib/utils"
+import cortexLogo from "@/assets/cortex-logo.png"
 
 export const PRODUCT_NAME = "Cortex"
 
-/** The Cortex glyph (favicon mark), rendered inline so it inherits sizing. */
 export function LogoMark({ className }: { className?: string }) {
   return (
     <img
-      src="/favicon.svg"
-      alt=""
-      aria-hidden
-      className={cn("select-none", className)}
+      src={cortexLogo}
+      alt={`${PRODUCT_NAME} logo`}
+      className={cn("select-none object-contain", className)}
       draggable={false}
     />
   )
 }
 
-/** Full lockup: mark + wordmark. */
 export function Brand({
   className,
   showTagline = false,
@@ -25,8 +23,8 @@ export function Brand({
 }) {
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-accent shadow-soft ring-1 ring-border">
-        <LogoMark className="h-5 w-5" />
+      <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl bg-accent/40 shadow-soft ring-1 ring-border">
+        <LogoMark className="h-10 w-10" />
       </span>
       <div className="leading-none">
         <div className="text-[15px] font-bold tracking-tight">{PRODUCT_NAME}</div>

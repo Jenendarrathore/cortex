@@ -8,6 +8,8 @@ Cortex RAG is a local Retrieval-Augmented Generation system built for personal o
 
 Everything runs on your own machine. No third-party APIs are involved in retrieval or storage. Embeddings are generated locally via Ollama, the database is a local PostgreSQL instance, and the MCP server connects Claude Desktop to your knowledge base over localhost.
 
+![Cortex Admin UI — hybrid search with ranked results](/img/screenshots/04-search-results.png)
+
 ## Key features
 
 - **Local-first** — embeddings (Ollama `nomic-embed-text`), vector store (pgvector), and reranker (sentence-transformers) all run on your hardware. Nothing leaves your machine.
