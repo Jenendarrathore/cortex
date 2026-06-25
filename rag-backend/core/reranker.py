@@ -1,7 +1,6 @@
 import time
 
 import anyio
-from sentence_transformers import CrossEncoder
 
 from core.config import settings
 from core.logging import get_logger
@@ -11,11 +10,14 @@ logger = get_logger(__name__)
 _model = None
 
 
-def _get_model() -> CrossEncoder:
-    """Lazy singleton. Logs load time on first use (no eager warmup — a large
-    model would slow startup; measure here before deciding to warm)."""
+def _get_model():
+    """Lazy singleton. The sentence_transformers import is deferred to here too —
+    it pulls in torch (~4s cold) and nothing at startup needs the reranker, so
+    importing it eagerly only slows boot. First search pays the cost once."""
     global _model
     if _model is None:
+        from sentence_transformers import CrossEncoder
+
         t0 = time.perf_counter()
         _model = CrossEncoder(settings.rerank_model)
         logger.info("Reranker loaded (%s) in %.2fs", settings.rerank_model, time.perf_counter() - t0)

@@ -52,17 +52,23 @@ The three Python services share one image (`cortex-py`), run with different comm
 
 ## Quickstart (Docker)
 
-The only prerequisite is **Docker + Docker Compose**. One command does everything —
-creates `.env`, builds, starts the full stack, waits until it's healthy, and seeds
-a sample document so search works immediately:
+The only prerequisite is **Docker + Docker Compose** (Docker Engine 24+ / Compose
+v2). One command does everything — creates `.env`, builds, starts the full stack,
+waits until it's healthy, and seeds a sample document so search works immediately:
 
 ```bash
-git clone <your-fork-url> cortex && cd cortex
+git clone https://github.com/Jenendarrathore/cortex.git cortex && cd cortex
 make quickstart
 ```
 
 > First build is large (torch + sentence-transformers) and can take 10–20 min.
 > No `.env` editing needed for local use — sane defaults are baked in.
+
+Confirm it worked:
+
+```bash
+make test      # health → ingest → search round-trip; exits 0 if the stack is live
+```
 
 When it finishes it prints your URLs:
 
@@ -115,8 +121,9 @@ Restart Claude Desktop to load it. (Confirm your container name with `docker ps`
 
 ## Bare-metal install (no Docker)
 
-For contributors who want native hot-reload. Driven by the Makefile — installs
-Postgres+pgvector, Redis, Ollama, Node:
+For contributors who want native hot-reload. Requires **Python 3.12**, **Node 20+**,
+**Postgres 16 + pgvector**, **Redis 7**, and **Ollama**. The Makefile installs the
+system deps for you:
 
 ```bash
 make mac-setup      # or: make linux-setup  /  make windows-setup (WSL2)
@@ -157,6 +164,16 @@ All config is environment variables (see [.env.example](.env.example)):
 make up && make test      # smoke round-trip: health → ingest → search
 make lint                 # ruff (python)
 ```
+
+## Troubleshooting
+
+| Symptom                                   | Fix                                                                                 |
+|-------------------------------------------|-------------------------------------------------------------------------------------|
+| Port already in use (`5173`/`8002`/`3000`)| Set the matching `*_PORT` in `.env` (see [.env.example](.env.example)) and re-run.   |
+| Build killed / OOM during torch install   | Give Docker ≥8 GB RAM (Docker Desktop → Settings → Resources).                       |
+| First search returns nothing              | Ollama is still pulling `nomic-embed-text`. Watch `make logs`; retry after it lands. |
+| `make test` fails right after quickstart   | Stack not healthy yet — wait for the build to finish, then `make logs` to inspect.   |
+| MCP can't connect from Claude Desktop     | Confirm the container name with `docker ps` (default `cortex-mcp-1`).                |
 
 ## Project layout
 

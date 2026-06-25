@@ -1,3 +1,6 @@
+# Interpreter used to build the venv. Project targets Python 3.12.
+# Override if your 3.12 lives elsewhere:  make setup PY=/path/to/python3.12
+PY        ?= python3.12
 VENV_DIR  := $(CURDIR)/.cortex_venv
 PYTHON    := $(VENV_DIR)/bin/python
 
@@ -93,13 +96,15 @@ windows-setup:
 
 # Create venv, install all Python + frontend + docs deps
 setup:
-	python3 -m venv $(VENV_DIR)
+	$(PY) -m venv $(VENV_DIR)
 	$(PYTHON) -m pip install --upgrade pip
 	$(PYTHON) -m pip install -r requirements.txt
 	cd rag-frontend && npm install
 	cd docs && npm install
 	@echo ""
 	@echo "Setup complete."
+	@echo "Activate the venv:  source $(VENV_DIR)/bin/activate"
+	@echo "(make targets use it automatically; activate only for manual python/pytest.)"
 	@echo "Copy .env.example to .env and fill in credentials."
 	@echo "Then run: make rag  |  make rag-ui"
 
@@ -128,6 +133,24 @@ rag:
 # Start the MCP server (stdio transport — Claude Desktop spawns this)
 mcp:
 	$(PYTHON) mcp/server.py
+
+# Start the MCP server over HTTP (streamable-http — for remote/multi-client or interactive testing)
+mcp-http:
+	MCP_TRANSPORT=streamable-http MCP_PORT=$(or $(MCP_PORT),8001) $(PYTHON) mcp/server.py
+
+# Register the running HTTP MCP server (make mcp-http) with the various clients.
+# Override target/url with: MCP_NAME=cortex MCP_URL=http://localhost:8001/mcp
+mcp-connect-claude-cli:
+	scripts/mcp-connect-claude-cli.sh
+
+mcp-connect-claude-desktop:
+	scripts/mcp-connect-claude-desktop.sh
+
+mcp-connect-codex:
+	scripts/mcp-connect-codex.sh
+
+# Register with all clients at once
+mcp-connect: mcp-connect-claude-cli mcp-connect-claude-desktop mcp-connect-codex
 
 # Start the ARQ ingestion worker as a standalone process (alternative to in-process worker)
 # Use this when you want to run the worker separately from the API (e.g. Docker, scaling)
@@ -197,4 +220,4 @@ kill:
 	-lsof -ti:5173 | xargs kill 2>/dev/null
 	-lsof -ti:3000 | xargs kill 2>/dev/null
 
-.PHONY: mac-setup linux-setup windows-setup setup install install-rag-ui install-docs init-db rag rag-worker mcp rag-ui docs quickstart seed dev build up up-dev down logs lint test kill
+.PHONY: mac-setup linux-setup windows-setup setup install install-rag-ui install-docs init-db rag rag-worker mcp mcp-http mcp-connect mcp-connect-claude-cli mcp-connect-claude-desktop mcp-connect-codex rag-ui docs quickstart seed dev build up up-dev down logs lint test kill
